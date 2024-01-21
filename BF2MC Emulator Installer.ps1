@@ -4,6 +4,15 @@ $pcsx2PackageName = "pcsx2-v1.7.3858-windows-64bit-AVX2-Qt.7z"
 $zip7Url = "https://www.7-zip.org/a/7zr.exe"
 $zip7ExeName = "7zr.exe"
 
+$emulatorConfigUrl = "https://raw.githubusercontent.com/Project-Backstab/BF2MC-Emulator-Installer/main/inis/PCSX2.ini"
+$emulatorConfigName = "PCSX2.ini"
+
+$vulkanPatchUrl = "https://raw.githubusercontent.com/Project-Backstab/BF2MC-Emulator-Installer/main/resources/shaders/vulkan/tfx.glsl"
+$vulkanPatchName = "tfx.glsl"
+
+$memcardUrl = "https://raw.githubusercontent.com/Project-Backstab/BF2MC-Emulator-Installer/main/memcards/BFMCspy.ps2"
+$memcardName = "BFMCspy.ps2"
+
 Add-Type -Name Window -Namespace Console -MemberDefinition '
 [DllImport("Kernel32.dll")]
 public static extern IntPtr GetConsoleWindow();
@@ -28,22 +37,27 @@ $MainWindow.SizeGripStyle        = [System.Windows.Forms.SizeGripStyle]::Hide
 $MainWindow.StartPosition        = [System.Windows.Forms.FormStartPosition]::CenterScreen
 $MainWindow.FormBorderStyle      = [System.Windows.Forms.FormBorderStyle]::FixedSingle
 $MainWindow.MaximizeBox          = $false
-$MainWindow.ShowIcon             = "https://raw.githubusercontent.com/Project-Backstab/BF2MC-Emulator-Installer/main/icons/bfmc_icon.png"
+$MainWindow.icon                 = "https://raw.githubusercontent.com/Project-Backstab/BF2MC-Emulator-Installer/main/images/bfmc_icon.ico"
 
 $textboxInstallDir               = New-Object system.Windows.Forms.TextBox
 $textboxInstallDir.multiline     = $false
-$textboxInstallDir.text          = "Test"
+$textboxInstallDir.text          = [System.IO.Path]::Combine([Environment]::GetFolderPath('MyDocuments'))
 $textboxInstallDir.width         = 229
 $textboxInstallDir.height        = 20
 $textboxInstallDir.location      = New-Object System.Drawing.Point(158,52)
-$textboxInstallDir.Font          = New-Object System.Drawing.Font('Microsoft Sans Serif',12)
+$textboxInstallDir.Font          = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
+
+$tooltipInstallDir               = New-Object system.Windows.Forms.ToolTip
+$tooltipInstallDir.ToolTipTitle  = "asdasd"
+$tooltipInstallDir.SetToolTip($textboxInstallDir,'Test')
 
 $buttonInstallDirSelect          = New-Object system.Windows.Forms.PictureBox
 $buttonInstallDirSelect.width    = 69
 $buttonInstallDirSelect.height   = 43
 $buttonInstallDirSelect.location  = New-Object System.Drawing.Point(446,45)
-$buttonInstallDirSelect.imageLocation  = "https://raw.githubusercontent.com/Project-Backstab/BF2MC-Emulator-Installer/main/icons/folder_icon.png"
+$buttonInstallDirSelect.imageLocation  = "https://raw.githubusercontent.com/Project-Backstab/BF2MC-Emulator-Installer/main/images/folder_icon.png"
 $buttonInstallDirSelect.SizeMode  = [System.Windows.Forms.PictureBoxSizeMode]::zoom
+
 $buttonInstall                   = New-Object system.Windows.Forms.Button
 $buttonInstall.text              = "Install"
 $buttonInstall.width             = 162
@@ -68,28 +82,50 @@ function Install-Everything {
     
     # Download 7zip-standalone
     $zip7FilePath = Join-Path $textboxInstallDir.text $zip7ExeName
-    Pause
     Write-Host "Downloading dependencies..."
     # Invoke-WebRequest -Uri $zip7Url -OutFile $zip7FilePath
     
     # Download the PCSX2 .7z file
     $pcsx2FilePath = Join-Path $textboxInstallDir.text $pcsx2PackageName
     Clear-Host
-    Write-Host "Downloading PCSX2 Emulator..."
+    Write-Host "Downloading PCSX2 v1.7.3858 emulator..."
     # Invoke-WebRequest -Uri $pcsx2Url -OutFile $pcsx2FilePath
     
     # Extract PCSX2
     Clear-Host
-    Write-Host "Extracting PCSX2 Emulator..."
+    Write-Host "Unpacking PCSX2 emulator..."
     $pcsx2InstallPath = Join-Path $textboxInstallDir.text "PCSX2-v1.7.3858"
-    & $zip7FilePath x $pcsx2FilePath -o"$pcsx2InstallPath"
+    # & $zip7FilePath x $pcsx2FilePath -o"$pcsx2InstallPath"
+    Remove-Item -Path $zip7FilePath
+    Remove-Item -Path $pcsx2FilePath
     Write-Host "Unpacking completed."
-    
-    # Clean up
+    Start-Sleep -Seconds 1
+
+    # Download emulator config
     Clear-Host
-    Write-Host "Cleaning up..."
-    # Remove-Item -Path $zip7FilePath
-    # Remove-Item -Path $pcsx2FilePath
+    Write-Host "Downloading emulator config..."
+    $inisPath = Join-Path $pcsx2InstallPath "inis"
+    New-Item -ItemType Directory -Path $inisPath
+    $gamesPath = Join-Path $pcsx2InstallPath "games"
+    New-Item -ItemType Directory -Path $gamesPath
+    $configPath = Join-Path $inisPath $emulatorConfigName
+    Invoke-WebRequest -Uri $emulatorConfigUrl -OutFile $configPath
+    (Get-Content -Path $configPath -Raw) -replace "GAMES_PATH", $gamesPath | Set-Content -Path $configPath
+
+    # Download Vulkan renderer patch
+    Clear-Host
+    Write-Host "Downloading Vulkan renderer patch..."
+    $vulkanPath = Join-Path $pcsx2InstallPath "resources\shaders\vulkan"
+    $vulkanPath = Join-Path $vulkanPath $vulkanPatchName
+    Invoke-WebRequest -Uri $vulkanPatchUrl -OutFile $vulkanPath
+
+    # Download memcard
+    Clear-Host
+    Write-Host "Downloading pre-configured PS2 memory card (for connection to BFMCspy)..."
+    $memcardsPath = Join-Path $pcsx2InstallPath "memcards"
+    New-Item -ItemType Directory -Path $memcardsPath
+    $memcardPath = Join-Path $memcardsPath $memcardName
+    Invoke-WebRequest -Uri $memcardUrl -OutFile $memcardPath
     
     # Hide console
     [Console.Window]::ShowWindow([Console.Window]::GetConsoleWindow(), 0)
