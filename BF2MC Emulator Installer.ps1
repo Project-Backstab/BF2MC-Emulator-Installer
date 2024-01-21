@@ -1,3 +1,6 @@
+$iconUrl = "https://raw.githubusercontent.com/Project-Backstab/BF2MC-Emulator-Installer/main/images/bfmc_icon.ico"
+$iconName = "bfmc_icon.ico"
+
 $pcsx2Url = "https://github.com/PCSX2/pcsx2/releases/download/v1.7.3858/pcsx2-v1.7.3858-windows-64bit-AVX2-Qt.7z"
 $pcsx2PackageName = "pcsx2-v1.7.3858-windows-64bit-AVX2-Qt.7z"
 
@@ -31,20 +34,52 @@ Add-Type -AssemblyName System.Windows.Forms
 
 $MainWindow                      = New-Object system.Windows.Forms.Form
 $MainWindow.ClientSize           = New-Object System.Drawing.Point(753,504)
-$MainWindow.text                 = "BF2:MC Emulator Installer"
+$MainWindow.text                 = "BF2MC Online  |  Emulator Installer"
 $MainWindow.TopMost              = $false
 $MainWindow.SizeGripStyle        = [System.Windows.Forms.SizeGripStyle]::Hide
 $MainWindow.StartPosition        = [System.Windows.Forms.FormStartPosition]::CenterScreen
 $MainWindow.FormBorderStyle      = [System.Windows.Forms.FormBorderStyle]::FixedSingle
 $MainWindow.MaximizeBox          = $false
-$MainWindow.icon                 = "https://raw.githubusercontent.com/Project-Backstab/BF2MC-Emulator-Installer/main/images/bfmc_icon.ico"
+Invoke-WebRequest -Uri $iconUrl -OutFile "$iconName"
+$MainWindow.icon                 = "bfmc_icon.ico"
+Remove-Item -Path $iconName
+
+$panelTop                        = New-Object system.Windows.Forms.Panel
+$panelTop.height                 = 155
+$panelTop.width                  = 734
+$panelTop.location               = New-Object System.Drawing.Point(8,-57)
+$panelTop.BackColor              = [System.Drawing.ColorTranslator]::FromHtml("#498d9f")
+
+$pictureboxBF2MC                 = New-Object system.Windows.Forms.PictureBox
+$pictureboxBF2MC.width           = 165
+$pictureboxBF2MC.height          = 86
+$pictureboxBF2MC.location        = New-Object System.Drawing.Point(17,3)
+$pictureboxBF2MC.imageLocation   = "https://raw.githubusercontent.com/Project-Backstab/BF2MC-Emulator-Installer/main/images/bf2mc_online_logo.png"
+$pictureboxBF2MC.SizeMode        = [System.Windows.Forms.PictureBoxSizeMode]::zoom
+$pictureboxBF2MC.BackColor       = [System.Drawing.ColorTranslator]::FromHtml("#498d9f")
+
+$pictureboxBFMCspy               = New-Object system.Windows.Forms.PictureBox
+$pictureboxBFMCspy.width         = 229
+$pictureboxBFMCspy.height        = 86
+$pictureboxBFMCspy.location      = New-Object System.Drawing.Point(233,3)
+$pictureboxBFMCspy.imageLocation  = "https://raw.githubusercontent.com/Project-Backstab/BF2MC-Emulator-Installer/main/images/bfmcspy_logo.png"
+$pictureboxBFMCspy.SizeMode      = [System.Windows.Forms.PictureBoxSizeMode]::zoom
+$pictureboxBFMCspy.BackColor     = [System.Drawing.ColorTranslator]::FromHtml("#498d9f")
+
+$pictureboxPCSX2                 = New-Object system.Windows.Forms.PictureBox
+$pictureboxPCSX2.width           = 229
+$pictureboxPCSX2.height          = 86
+$pictureboxPCSX2.location        = New-Object System.Drawing.Point(501,3)
+$pictureboxPCSX2.imageLocation   = "https://raw.githubusercontent.com/Project-Backstab/BF2MC-Emulator-Installer/main/images/pcsx2_logo.png"
+$pictureboxPCSX2.SizeMode        = [System.Windows.Forms.PictureBoxSizeMode]::zoom
+$pictureboxPCSX2.BackColor       = [System.Drawing.ColorTranslator]::FromHtml("#498d9f")
 
 $textboxInstallDir               = New-Object system.Windows.Forms.TextBox
 $textboxInstallDir.multiline     = $false
 $textboxInstallDir.text          = [System.IO.Path]::Combine([Environment]::GetFolderPath('MyDocuments'))
 $textboxInstallDir.width         = 229
 $textboxInstallDir.height        = 20
-$textboxInstallDir.location      = New-Object System.Drawing.Point(158,52)
+$textboxInstallDir.location      = New-Object System.Drawing.Point(158,200)
 $textboxInstallDir.Font          = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
 
 $tooltipInstallDir               = New-Object system.Windows.Forms.ToolTip
@@ -54,7 +89,7 @@ $tooltipInstallDir.SetToolTip($textboxInstallDir,'Test')
 $buttonInstallDirSelect          = New-Object system.Windows.Forms.PictureBox
 $buttonInstallDirSelect.width    = 69
 $buttonInstallDirSelect.height   = 43
-$buttonInstallDirSelect.location  = New-Object System.Drawing.Point(446,45)
+$buttonInstallDirSelect.location  = New-Object System.Drawing.Point(446,200)
 $buttonInstallDirSelect.imageLocation  = "https://raw.githubusercontent.com/Project-Backstab/BF2MC-Emulator-Installer/main/images/folder_icon.png"
 $buttonInstallDirSelect.SizeMode  = [System.Windows.Forms.PictureBoxSizeMode]::zoom
 
@@ -67,7 +102,15 @@ $buttonInstall.enabled           = $true
 $buttonInstall.location          = New-Object System.Drawing.Point(547,402)
 $buttonInstall.Font              = New-Object System.Drawing.Font('Microsoft Sans Serif',12)
 
-$MainWindow.controls.AddRange(@($textboxInstallDir,$buttonInstallDirSelect,$buttonInstall))
+$MainWindow.controls.AddRange(@(
+    $pictureboxBF2MC,
+    $pictureboxBFMCspy,
+    $pictureboxPCSX2,
+    $textboxInstallDir,
+    $buttonInstallDirSelect,
+    $buttonInstall,
+    $panelTop
+))
 
 $buttonInstallDirSelect.Add_Click({ Get-FolderName  -Message "Select a poop." -ShowNewFolderButton $true -textBox $textboxInstallDir })
 $buttonInstall.Add_Click({ Install-Everything })
