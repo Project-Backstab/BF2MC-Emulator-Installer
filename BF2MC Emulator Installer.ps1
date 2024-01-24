@@ -31,6 +31,9 @@ $gamecoverUrl = "https://raw.githubusercontent.com/Project-Backstab/BF2MC-Emulat
 $xboxPatchUrl = "https://raw.githubusercontent.com/Project-Backstab/BF2MC-Emulator-Installer/main/inis/PCSX2.ini"
 $xboxPatchName = "c53b0b57f82958c6-dea8033bbc2d19e4-000065d3.png"
 
+$shortcutIconUrl = "https://raw.githubusercontent.com/Project-Backstab/BF2MC-Emulator-Installer/main/images/shortcut.ico"
+$shortcutIconName = "shortcut.ico"
+
 Add-Type -Name Window -Namespace Console -MemberDefinition '
 [DllImport("Kernel32.dll")]
 public static extern IntPtr GetConsoleWindow();
@@ -139,26 +142,26 @@ $buttonInstallDirSelect.Add_Click({
     Get-FolderName  -Message "Select a folder to install to. A '$pcsx2FolderName' folder will be added here." -ShowNewFolderButton $true -textBox $textboxInstallDir
 })
 
-$labelGamesDir                    = New-Object system.Windows.Forms.Label
-$labelGamesDir.text               = "Game Folder:"
-$labelGamesDir.AutoSize           = $true
-$labelGamesDir.location           = New-Object System.Drawing.Point(5,70)
-$labelGamesDir.Font               = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
+$labelGameIso                    = New-Object system.Windows.Forms.Label
+$labelGameIso.text               = "Game Folder:"
+$labelGameIso.AutoSize           = $true
+$labelGameIso.location           = New-Object System.Drawing.Point(5,70)
+$labelGameIso.Font               = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
 
-$textboxGamesDir                  = New-Object system.Windows.Forms.TextBox
-$textboxGamesDir.multiline        = $false
-$textboxGamesDir.text             = $null
-$textboxGamesDir.width            = 500
-$textboxGamesDir.height           = 20
-$textboxGamesDir.location         = New-Object System.Drawing.Point(10,90)
-$textboxGamesDir.Font             = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
+$textboxGameIso                  = New-Object system.Windows.Forms.TextBox
+$textboxGameIso.multiline        = $false
+$textboxGameIso.text             = $null
+$textboxGameIso.width            = 500
+$textboxGameIso.height           = 20
+$textboxGameIso.location         = New-Object System.Drawing.Point(10,90)
+$textboxGameIso.Font             = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
 
-$buttonGamesDirSelect             = New-Object system.Windows.Forms.Button
-$buttonGamesDirSelect.Size        = New-Object Drawing.Size(32, 28)
-$buttonGamesDirSelect.Image       = [System.Drawing.Icon]::FromHandle(([System.Drawing.Bitmap]::new($folderIconStream).GetHIcon()))
-$buttonGamesDirSelect.location    = New-Object System.Drawing.Point(515,87)
-$buttonGamesDirSelect.Add_Click({
-    Get-FolderName  -Message "Select the folder where your BF2:MC game ISO file is located." -ShowNewFolderButton $false -textBox $textboxGamesDir
+$buttonGameIsoSelect             = New-Object system.Windows.Forms.Button
+$buttonGameIsoSelect.Size        = New-Object Drawing.Size(32, 28)
+$buttonGameIsoSelect.Image       = [System.Drawing.Icon]::FromHandle(([System.Drawing.Bitmap]::new($folderIconStream).GetHIcon()))
+$buttonGameIsoSelect.location    = New-Object System.Drawing.Point(515,87)
+$buttonGameIsoSelect.Add_Click({
+    Get-FileName  -Message "Select your BF2:MC game ISO file" -ShowNewFolderButton $false -textBox $textboxGameIso
 })
 
 $labelBiosFile                    = New-Object system.Windows.Forms.Label
@@ -213,10 +216,16 @@ $comboboxResolution.location         = New-Object System.Drawing.Point(10,30)
 $comboboxResolution.Font             = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
 $comboboxResolution.DropDownStyle    = [System.Windows.Forms.ComboBoxStyle]::DropDownList
 
+$checkboxDesktopShortcut             = New-Object system.Windows.Forms.CheckBox
+$checkboxDesktopShortcut.text        = "Add Desktop Shortcut to launch game directly"
+$checkboxDesktopShortcut.AutoSize    = $true
+$checkboxDesktopShortcut.location    = New-Object System.Drawing.Point(10,70)
+$checkboxDesktopShortcut.Font        = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
+
 $checkboxXboxPatch                   = New-Object system.Windows.Forms.CheckBox
 $checkboxXboxPatch.text              = "Install Xbox On-Screen buttons texture patch"
 $checkboxXboxPatch.AutoSize          = $true
-$checkboxXboxPatch.location          = New-Object System.Drawing.Point(10,70)
+$checkboxXboxPatch.location          = New-Object System.Drawing.Point(10,100)
 $checkboxXboxPatch.Font              = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
 
 $buttonInstall                    = New-Object system.Windows.Forms.Button
@@ -248,9 +257,9 @@ $groupboxPaths.controls.AddRange(@(
     $labelInstallDir,
     $textboxInstallDir,
     $buttonInstallDirSelect,
-    $labelGamesDir,
-    $textboxGamesDir,
-    $buttonGamesDirSelect,
+    $labelGameIso,
+    $textboxGameIso,
+    $buttonGameIsoSelect,
     $labelBiosFile,
     $textboxBiosFile,
     $buttonBiosFileSelect,
@@ -259,6 +268,7 @@ $groupboxPaths.controls.AddRange(@(
 ))
 $groupboxOptions.controls.AddRange(@(
     $comboboxResolution,
+    $checkboxDesktopShortcut,
     $checkboxXboxPatch
 ))
 
@@ -273,19 +283,19 @@ function Install-Everything {
     # Download 7zip-standalone
     $zip7FilePath = Join-Path $textboxInstallDir.text $zip7ExeName
     Write-Host "Downloading dependencies..."
-    Invoke-WebRequest -Uri $zip7Url -OutFile $zip7FilePath
+    # Invoke-WebRequest -Uri $zip7Url -OutFile $zip7FilePath
     
     # Download the PCSX2 .7z file
     $pcsx2FilePath = Join-Path $textboxInstallDir.text $pcsx2PackageName
     Clear-Host
     Write-Host "Downloading PCSX2 v1.7.3858 emulator..."
-    Invoke-WebRequest -Uri $pcsx2Url -OutFile $pcsx2FilePath
+    # Invoke-WebRequest -Uri $pcsx2Url -OutFile $pcsx2FilePath
     
     # Extract PCSX2
     Clear-Host
     Write-Host "Unpacking PCSX2 emulator..."
     $pcsx2InstallPath = Join-Path $textboxInstallDir.text $pcsx2FolderName
-    & $zip7FilePath x $pcsx2FilePath -o"$pcsx2InstallPath"
+    # & $zip7FilePath x $pcsx2FilePath -o"$pcsx2InstallPath"
     Remove-Item -Path $zip7FilePath
     Remove-Item -Path $pcsx2FilePath
     Write-Host "Unpacking completed."
@@ -303,7 +313,7 @@ function Install-Everything {
     Write-Host "Adding preferences to config..."
     (Get-Content -Path $configPath -Raw) -replace "BIOS_DIR", [System.IO.Path]::GetDirectoryName($textboxBiosFile.text) | Set-Content -Path $configPath
     (Get-Content -Path $configPath -Raw) -replace "BIOS_FILE", (Get-Item $textboxBiosFile.text).Name | Set-Content -Path $configPath
-    (Get-Content -Path $configPath -Raw) -replace "GAMES_DIR", $textboxGamesDir.text | Set-Content -Path $configPath
+    (Get-Content -Path $configPath -Raw) -replace "GAMES_DIR", [System.IO.Path]::GetDirectoryName($textboxGameIso.text) | Set-Content -Path $configPath
     Write-Host "Emulator config done."
     Start-Sleep -Seconds 2
 
@@ -342,7 +352,7 @@ function Install-Everything {
     $memcardsPath = Join-Path $pcsx2InstallPath "memcards"
     New-Item -ItemType Directory -Path $memcardsPath
     $memcardPath = Join-Path $memcardsPath $memcardName
-    Invoke-WebRequest -Uri $memcardUrl -OutFile $memcardPath
+    # Invoke-WebRequest -Uri $memcardUrl -OutFile $memcardPath
     Write-Host "Memory card done."
     Start-Sleep -Seconds 1
 
@@ -384,6 +394,31 @@ function Install-Everything {
         Write-Host "Xbox buttons patch done."
         Start-Sleep -Seconds 2
     }
+
+    # Add Desktop shortcut (if specified)
+    if ($checkboxDesktopShortcut.Checked -eq $true){
+        Clear-Host
+        Write-Host "Adding desktop shortcut..."
+        $shortcutIconPath = Join-Path $pcsx2InstallPath $shortcutIconName
+        Invoke-WebRequest -Uri $shortcutIconUrl -OutFile $shortcutIconPath
+        # Specify the shortcut properties
+        $gameIsoPath = $textboxGameIso.text
+        $shortcutProperties = @{
+            ShortcutName = "Battlefield 2 - Modern Combat (Test)"
+            StartIn = $env:pcsx2InstallPath
+            Target = "$env:pcsx2InstallPath\pcsx2-qtx64-avx2.exe $gameIsoPath"
+            IconPath = $shortcutIconPath
+        }
+        # Create the shortcut
+        Create-DesktopShortcut @shortcutProperties
+        Write-Host "Desktop shortcut added."
+        Start-Sleep -Seconds 2
+        Pause
+    }
+
+    Clear-Host
+    Write-Host "All done! :D"
+    Start-Sleep -Seconds 2
 
     # Hide console
     [Console.Window]::ShowWindow([Console.Window]::GetConsoleWindow(), 0)
@@ -449,6 +484,24 @@ function Get-FileName {
         # User canceled the selection
         $textBox.text = $null
     }
+}
+
+function Create-DesktopShortcut {
+    param(
+        [string]$ShortcutName,
+        [string]$StartIn,
+        [string]$Target,
+        [string]$IconPath
+    )
+
+    $shell = New-Object -ComObject WScript.Shell
+    $desktopPath = [System.IO.Path]::Combine($shell.SpecialFolders('Desktop'), "$ShortcutName.lnk")
+
+    $shortcut = $shell.CreateShortcut($desktopPath)
+    $shortcut.TargetPath = $Target
+    $shortcut.WorkingDirectory = $StartIn
+    $shortcut.IconLocation = $IconPath
+    $shortcut.Save()
 }
 
 #endregion
