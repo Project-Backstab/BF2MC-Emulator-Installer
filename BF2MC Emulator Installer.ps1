@@ -162,7 +162,7 @@ $buttonGamesDirSelect.Add_Click({
 })
 
 $labelBiosFile                    = New-Object system.Windows.Forms.Label
-$labelBiosFile.text               = "PS2 BIOS File:"
+$labelBiosFile.text               = "PS2 BIOS .bin File:"
 $labelBiosFile.AutoSize           = $true
 $labelBiosFile.location           = New-Object System.Drawing.Point(5,120)
 $labelBiosFile.Font               = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
