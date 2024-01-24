@@ -38,7 +38,7 @@ public static extern IntPtr GetConsoleWindow();
 [DllImport("user32.dll")]
 public static extern bool ShowWindow(IntPtr hWnd, Int32 nCmdShow);'
 
-[Console.Window]::ShowWindow([Console.Window]::GetConsoleWindow(), 1)
+[Console.Window]::ShowWindow([Console.Window]::GetConsoleWindow(), 0)
 <# 
 .NAME
     BF2MC Installer
@@ -303,9 +303,9 @@ function Install-Everything {
     Write-Host "Adding preferences to config..."
     (Get-Content -Path $configPath -Raw) -replace "BIOS_DIR", [System.IO.Path]::GetDirectoryName($textboxBiosFile.text) | Set-Content -Path $configPath
     (Get-Content -Path $configPath -Raw) -replace "BIOS_FILE", (Get-Item $textboxBiosFile.text).Name | Set-Content -Path $configPath
-    (Get-Content -Path $configPath -Raw) -replace "GAMES_PATH", $textboxGamesDir.text | Set-Content -Path $configPath
+    (Get-Content -Path $configPath -Raw) -replace "GAMES_DIR", $textboxGamesDir.text | Set-Content -Path $configPath
     Write-Host "Emulator config done."
-    Start-Sleep -Seconds 1
+    Start-Sleep -Seconds 2
 
     # Download game settings
     Clear-Host
@@ -321,11 +321,11 @@ function Install-Everything {
     $gamesettingsPath = Join-Path $gamesettingsPath $gamesettingsName
     Invoke-WebRequest -Uri $gamesettingsUrl -OutFile $gamesettingsPath
     Write-Host "Adding preferences to game settings..."
-    (Get-Content -Path $gamesettingsPath -Raw) -replace "RESOLUTION_VAL", $comboboxRegion.SelectedIndex | Set-Content -Path $gamesettingsPath
+    (Get-Content -Path $gamesettingsPath -Raw) -replace "RESOLUTION_VAL", $comboboxResolution.SelectedIndex | Set-Content -Path $gamesettingsPath
     $gpuName = Get-WmiObject Win32_VideoController | Select-Object -ExpandProperty Name
     (Get-Content -Path $gamesettingsPath -Raw) -replace "GPU_NAME", $gpuName | Set-Content -Path $gamesettingsPath
     Write-Host "Game settings done."
-    Start-Sleep -Seconds 1
+    Start-Sleep -Seconds 2
 
     # Download Vulkan renderer patch
     Clear-Host
@@ -334,7 +334,7 @@ function Install-Everything {
     $vulkanPath = Join-Path $vulkanPath $vulkanPatchName
     Invoke-WebRequest -Uri $vulkanPatchUrl -OutFile $vulkanPath
     Write-Host "Renderer patch done."
-    Start-Sleep -Seconds 1
+    Start-Sleep -Seconds 2
 
     # Download memcard
     Clear-Host
@@ -360,7 +360,7 @@ function Install-Everything {
     $coverPath = Join-Path $coversPath $coverName
     Invoke-WebRequest -Uri $gamecoverUrl -OutFile $coverPath
     Write-Host "Game cover done."
-    Start-Sleep -Seconds 1
+    Start-Sleep -Seconds 2
 
     # Download Xbox buttons patch (if specified)
     if ($checkboxXboxPatch.Checked -eq $true){
@@ -380,8 +380,9 @@ function Install-Everything {
         New-Item -ItemType Directory -Path $replacementsPath
         $replacementsPath = Join-Path $replacementsPath $xboxPatchName
         Invoke-WebRequest -Uri $xboxPatchUrl -OutFile $replacementsPath
+        (Get-Content -Path $gamesettingsPath -Raw) -replace "LoadTextureReplacements = false", "LoadTextureReplacements = true" | Set-Content -Path $gamesettingsPath
         Write-Host "Xbox buttons patch done."
-        Start-Sleep -Seconds 1
+        Start-Sleep -Seconds 2
     }
 
     # Hide console
