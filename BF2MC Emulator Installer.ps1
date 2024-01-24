@@ -283,19 +283,19 @@ function Install-Everything {
     # Download 7zip-standalone
     $zip7FilePath = Join-Path $textboxInstallDir.text $zip7ExeName
     Write-Host "Downloading dependencies..."
-    # Invoke-WebRequest -Uri $zip7Url -OutFile $zip7FilePath
+    Invoke-WebRequest -Uri $zip7Url -OutFile $zip7FilePath
     
     # Download the PCSX2 .7z file
     $pcsx2FilePath = Join-Path $textboxInstallDir.text $pcsx2PackageName
     Clear-Host
     Write-Host "Downloading PCSX2 v1.7.3858 emulator..."
-    # Invoke-WebRequest -Uri $pcsx2Url -OutFile $pcsx2FilePath
+    Invoke-WebRequest -Uri $pcsx2Url -OutFile $pcsx2FilePath
     
     # Extract PCSX2
     Clear-Host
     Write-Host "Unpacking PCSX2 emulator..."
     $pcsx2InstallPath = Join-Path $textboxInstallDir.text $pcsx2FolderName
-    # & $zip7FilePath x $pcsx2FilePath -o"$pcsx2InstallPath"
+    & $zip7FilePath x $pcsx2FilePath -o"$pcsx2InstallPath"
     Remove-Item -Path $zip7FilePath
     Remove-Item -Path $pcsx2FilePath
     Write-Host "Unpacking completed."
@@ -306,8 +306,6 @@ function Install-Everything {
     Write-Host "Downloading custom emulator config..."
     $inisPath = Join-Path $pcsx2InstallPath "inis"
     New-Item -ItemType Directory -Path $inisPath
-    # $gamesPath = Join-Path $pcsx2InstallPath "games"
-    # New-Item -ItemType Directory -Path $gamesPath
     $configPath = Join-Path $inisPath $emulatorConfigName
     Invoke-WebRequest -Uri $emulatorConfigUrl -OutFile $configPath
     Write-Host "Adding preferences to config..."
@@ -352,7 +350,7 @@ function Install-Everything {
     $memcardsPath = Join-Path $pcsx2InstallPath "memcards"
     New-Item -ItemType Directory -Path $memcardsPath
     $memcardPath = Join-Path $memcardsPath $memcardName
-    # Invoke-WebRequest -Uri $memcardUrl -OutFile $memcardPath
+    Invoke-WebRequest -Uri $memcardUrl -OutFile $memcardPath
     Write-Host "Memory card done."
     Start-Sleep -Seconds 1
 
@@ -405,8 +403,9 @@ function Install-Everything {
         $gameIsoPath = $textboxGameIso.text
         $shortcutProperties = @{
             ShortcutName = "Battlefield 2 - Modern Combat (Test)"
-            StartIn = $env:pcsx2InstallPath
-            Target = "$env:pcsx2InstallPath\pcsx2-qtx64-avx2.exe $gameIsoPath"
+            StartIn = $pcsx2InstallPath
+            Target = "$pcsx2InstallPath\pcsx2-qtx64-avx2.exe"
+            Arguments = $gameIsoPath
             IconPath = $shortcutIconPath
         }
         # Create the shortcut
@@ -491,6 +490,7 @@ function Create-DesktopShortcut {
         [string]$ShortcutName,
         [string]$StartIn,
         [string]$Target,
+        [string]$Arguments,
         [string]$IconPath
     )
 
@@ -498,8 +498,9 @@ function Create-DesktopShortcut {
     $desktopPath = [System.IO.Path]::Combine($shell.SpecialFolders('Desktop'), "$ShortcutName.lnk")
 
     $shortcut = $shell.CreateShortcut($desktopPath)
-    $shortcut.TargetPath = $Target
-    $shortcut.WorkingDirectory = $StartIn
+    $shortcut.TargetPath = """$Target"""
+    $shortcut.Arguments = """$Arguments"""
+    $shortcut.WorkingDirectory = """$StartIn"""
     $shortcut.IconLocation = $IconPath
     $shortcut.Save()
 }
